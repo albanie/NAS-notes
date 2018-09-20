@@ -1,0 +1,9 @@
+*.blg
+*.brf
+*.log
+*.synctex.gz
+*.aux
+.DS_Store
+.texpadtmp/
+notes.pdf
+*.bbl

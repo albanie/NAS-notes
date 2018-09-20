@@ -1,0 +1,69 @@
+\documentclass[10pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{epigraph}
+\usepackage{dirtytalk}
+
+\newcommand\EE{\mathbb{E}}
+\newcommand\JJ{\mathcal{J}}
+\newcommand\RR{\mathbb{R}}
+\newcommand\qq{\mathbf{q}}
+\newcommand\pp{\mathbf{p}}
+\newcommand\cc{\mathbf{c}}
+
+\date{}
+\begin{document}
+
+\title{Some notes on Neural Architecture Search}
+\maketitle
+
+%\epigraph{But one aspect of current neural network research remains a bottleneck that could seriously impair progress in the coming years if left unaddressed.  This bottleneck is the problem of network design}
+\epigraph{Those seeking radically new architectures cast off into uncharted darkness.}{Miller, Todd, Hegde, 1989}
+
+\setlength{\parindent}{0pt}
+
+Ye olde researchers were wise and realised that the mapping from neural network architectures to performance (on some task of interest) is noisy, unintuitive and non-differentiable, thereby making the search for the one true architecture \textbf{highly treacherous}.  Given these characteristics, they chose to attack the problem with various forms of \textit{evolutionary algorithms} (EAs).  More recent work in the ML community has tended to focus (though not exclusively) on approaches using Reinforcement Learning.\\
+
+Below are just a few of the papers. There are other important papers (as measured by citation count) but I don't have the attention span to read more than one paper a year that is over ten pages long. This excludes a significant proportion of the (possibly?) highly relevant neuroevolution literature.
+
+\section[Darwinians]{The Neuorevolutionaries}
+
+
+\paragraph{Designing Neural Networks using Genetic Algorithms, Miller, Todd, Hegde (1989),\mbox{~\cite{miller1989designing,todd1988}}}  One of the first works to attack the problem of architecture search by using genetic algorithms\footnote{There seem to be earlier evolutionary attempts at learning structures with Finite State Machines like \cite{fogel1966} (1966), but I am unable to find the original papers online).} to search over architectures.  This was combined an inner loop that used backpropagation to train each architecture so that its \say{fitness} could be evaluated (i.e. a bilevel optimisation).  Their bit-string genotype representation is a simple matrix expressing connectivity between units.  Experiments with $5$-unit networks on the XOR problem took about an hour to complete (on Sun $4/260$ workstations).  They named their system \say{Innervator}, providing evidence that although excellent researchers, branding was not one of their strengths.  On the Four-Quadrant Problem (two-dimensional XOR) their algorithm finds that (weighted) skip connections are the best way to reach a solution.
+
+\paragraph{Evolving Neural Networks through Augmenting Topologies (NEAT), Stanley, Miikkulainen (2001), \cite{stanley2002evolving}} This is one particularly effective example of a \textit{Topology and Weight Evolving Artificial Neural Network} (TWEANN). The general idea here is that rather than fixing the network topology and using EAs to find the weights, better performance can be achieved when searching over \textit{both} the weights and the topologies.  One of the problems faced by these methods is that adding new structure often reduces performance in the short term, preventing innovation.  NEAT uses \textit{speciation} to prevent newly formed architectures from having to compete immediately against the rest of the population (competition then only occurs between genomes of the same species).   It begins with empty topologies and grows them incrementally, encourage less complex solutions to be explored first (a process known as \textit{complexification}).  This paper has been extended in several directions \cite{stanley2009hypercube,stanley2007compositional,pugh2013evolving}.
+
+\paragraph{Evolving memory cell structures for sequence learning, Bayer et al. (2009) \cite{bayer2009evolving}} Aims to learn an alternative LSTM cell using evolutionary search.  Uses NSGA-II \cite{deb2002fast} to learn the structure of the cell (fitness evaluation is performed using BPTT on an RNN with a fixed number of repeated cells) and achieve performance comparable to the standard LSTM cell, but the new cells have nicer names (Ana, Cathy, Mary and Charlotte).
+
+\paragraph{An Empirical Exploration of Recurrent Network Architectures, Jozefowicz, et al. (2015)~\cite{jozefowicz2015empirical}} An evolutionary search for a better memory cell, building on \cite{bayer2009evolving} but now operating at a gentle Google scale.  Over $10,000$ architectures are searched, but did not find anything that consistently beat the GRU \cite{cho2014learning} over multiple tasks (similar performance was achieved by LSTMs when the biases are set correctly), suggesting that despite their seemingly ad hoc nature LSTMs/GRUs may be at some kind of local optimum in the search for better cell structures.
+
+
+\paragraph{Genetic CNN, Xie, Yuille, (2017) \cite{xie2017genetic}} This work uses a genetic algorithm to search over network descriptions (which are encoded as fixed length binary strings). They are able to learn reasonable architectures from scratch (reaching mid-70s accuracy on CIFAR-10) and are able to improve on existing architectures by initialising their search from current designs. The authors show something of a penchant for writing \textbf{sentences in bold}.
+
+\paragraph{Large-Scale Evolution of Image Classifiers, Real et al. (2017)\cite{real2017large}}  In this paper, they went \say{full Google}, using $9 \times 10^{19}$ FLOPS on average per experiment.  This upset some people in the community and some polar bears, but it's still an interesting paper.  Their aim is to completely remove humans from the design process and be competitive on CIFAR.  As with earlier work, they combine an evolutionary search over architectures with backpropagation to test fitness, but they use a Lamarckian approach (passing learned weights between generations).  They reach a solid $94.6\%$ on CIFAR-$10$ (vs $96.7\%$ for DenseNet) and show that evolutionary search quality has surprisingly low variance. 
+
+\paragraph{Regularized Evolution for Image Classifier Architecture Search, Real et al. (2018) \cite{real2018regularized}}  This work makes a small modification to the previous paper (by the same team) by adding extra regularisation to the evolutionary search (it drops old models automatically, rather than allowing them to continue fighting for survival).  They set a new SOTA on CIFAR-$10$ ($97.87\%$) which lasted a couple of months (until it was overhauled by \cite{cubuk2018autoaugment}).  The models found by the EA are adorably referred to as AmoebaNets - they were also the foundation of the winning entry for DAWNBench (the competition on ImageNet where the goal is to reach a certain accuracy at the lowest cost).  They use the NASNet search space \cite{zoph2017learning}, which means that they search for simple cells that can be composed to form an architecture, rather than searching over the full architecture. 
+
+\paragraph{Hierarchical Representations for Efficient Architecture Search, Liu et al. (2018) \cite{liu2017hierarchical}} Also learns a basic \say{convolutional cell}, which is stacked and combined with other operators to form the full architecture.  Differently from previous work, the cell has a hierarchical structure and the EA can create mutations at different levels of the hierarchy (three levels are used in this work).  Under the settings of their search, they show that simply randomly picking from among the valid atomic operators already produces a strong baseline.  The hierarchical search achieves competitive performance on CIFAR and ImageNet, but is considerably faster to train than previous EA approaches. 
+
+
+
+\section{The Reinforcers}
+
+To be added after part 2.
+
+\section{The Lone Wolves}
+
+The lone wolves fit less easily into a single category.  These original thinkers like to do things their own way. Their own way often involves heavy use of mafs. 
+
+\paragraph{Random Search for Hyper-Parameter Optimization, Bergstra and Bengio, (2012) \cite{bergstra2012random}} This is a great paper. 
+
+
+
+
+\bibliographystyle{plain}
+\bibliography{refs.bib}
+
+\end{document}
